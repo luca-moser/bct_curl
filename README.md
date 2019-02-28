@@ -4,15 +4,17 @@ This repository implements a batched binary encoded ternary Curl, using Hans Moo
 
 The batch hasher collects up to a timeout of 50 milliseconds trits input to hash. All the inputs must be of the same length.
 
-On an i7-8850u CPU, it is able to throughput ~15k txs hashes/s given 8019 trits of transaction data **per core**.
+On an i7-8850u CPU, it is able to throughput ~15k txs hashes/s (**per core**) given 8019 trits of transaction data.
+
+The description below was written by studying the Go reference implementation.
 
 ### 1. Multiplexing
-The multiplexer transforms inputs of trits slices onto a slice of N times the size of a single input of 32-bit uints.
-Given for example input trits of 8019 (the trit size of a tx) and 32 requests (32 txs to hash), the multiplexer
-allocates a uint slice of 8019 in length. (32.076 kilobytes; ((8019 * 32) / 8) / 1000)
+The multiplexer transforms inputs of trits slices onto a slice of N times the size of a single input of 64-bit uints.
+Given for example input trits of 8019 (the trit size of a tx) and 64 requests (64 txs to hash), the multiplexer
+allocates a uint64 slice of 8019 in length. (64.152 kilobytes; ((8019 * 64) / 8) / 1000)
 For each trit at the location Y, the low and high bits are set accordingly to the formula of:
 Trit value: -1 => high 0, low 1; 0 => high 1, low 1; 1 => high 1, low 0; using OR bitwise operations.
-Thereby, the multiplexer can only multiplex up to 32 requests as a uint holds 32 bits.
+Thereby, the multiplexer can only multiplex up to 64 requests as a uint64 holds 64 bits. (on a 32-bit machine it will batch up to 32 requests)
 
 After multiplexing the input data onto slices of uints, a new BatchedCurl with the trit-size hash length
 and the number of rounds to perform is instantiated. 
@@ -24,7 +26,7 @@ The absorb function of BatchedCurl takes in a low and high uint slice tuple, the
 into the state per iteration or the remaining amount of trits available from the input tuple if it's less than the 
 requested trits hash length size. After each copying of the requested trits hash length/remaining trits, the transform
 function is applied to the state. Thereby, given a tuple input of 8019 uints and requested trits hash length size of 243,
-the transform function is applied: 8019 / 243 = 33 times. The uints are always copied into first third of the state
+the transform function is called: 8019 / 243 = 33 times (actually 33 x number of rounds). The uints are always copied into first third of the state
 before each transformation.
 
 ### 3. Transforming
@@ -45,6 +47,7 @@ If we had a state size of 9 (therefore indices 0,1,2,3,4,5,6,7,8), the permutati
 used as indices to pull the trits from the state against the S-Box.
 Thereby Curl's transformation function copies the state per round, then iterates over the state and pulls the permutation indices at stateIndex and stateIndex + 1, uses these permutation indices to pull the corresponding trits from the state and sets the state trit at the current state index accordingly to the derived S-Box value.
 In short (pseude code):
+```
 var stateCopy []int
 for round = 0; round < numRounds; round++ {
 	stateCopy = copy(stateCopy, state)
@@ -52,6 +55,7 @@ for round = 0; round < numRounds; round++ {
 		state[stateIndex] = S-Box(state[permutIndices[stateIndex]], state[permutIndices[stateIndex + 1]]).	
 	}
 }
+```
 
 The BatchedCurl transform function allocates two scratchpads uint slices of the state length (3 * requested trit hash length)
 and a scratchpad index of 0.
