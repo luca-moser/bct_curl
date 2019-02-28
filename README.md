@@ -4,6 +4,8 @@ This repository implements a batched binary encoded ternary Curl, using Hans Moo
 
 The batch hasher collects up to a timeout of 50 milliseconds trits input to hash. All the inputs must be of the same length.
 
+On an i7-8850 CPU, it is able to throughput ~15k txs hashes/s given 8019 trits of transaction data.
+
 ### 1. Multiplexing
 The multiplexer transforms inputs of trits slices onto a slice of N times the size of a single input of 32-bit uints.
 Given for example input trits of 8019 (the trit size of a tx) and 32 requests (32 txs to hash), the multiplexer
