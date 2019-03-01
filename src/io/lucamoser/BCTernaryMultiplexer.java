@@ -1,5 +1,6 @@
 package io.lucamoser;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 public class BCTernaryMultiplexer {
@@ -25,7 +26,6 @@ public class BCTernaryMultiplexer {
         BCTrinary result = new BCTrinary(new long[tritsCount], new long[tritsCount]);
         for (int i = 0; i < tritsCount; i++) {
             BCTrit bcTrit = new BCTrit();
-
             for (int j = 0; j < trinariesCount; j++) {
                 switch (trinaries.get(j)[i]) {
                     case -1:
@@ -39,7 +39,7 @@ public class BCTernaryMultiplexer {
                         bcTrit.high |= 1 << j;
                         break;
                     default:
-                        // TODO: throw an error
+                        throw new RuntimeException("invalid trit value in multiplexer");
                 }
             }
 

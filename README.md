@@ -58,7 +58,7 @@ var stateCopy []int
 for round = 0; round < numRounds; round++ {
 	stateCopy = copy(stateCopy, state)
 	for stateIndex = 0; stateIndex < stateSize; stateIndex++ {
-		state[stateIndex] = S-Box(state[permutIndices[stateIndex]], state[permutIndices[stateIndex + 1]]).	
+		state[stateIndex] = S-Box(stateCopy[permutIndices[stateIndex]], stateCopy[permutIndices[stateIndex + 1]]).	
 	}
 }
 ```
