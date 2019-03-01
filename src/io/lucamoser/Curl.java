@@ -14,7 +14,6 @@ public class Curl {
     private final byte[] state;
     private final byte[] scratchpad = new byte[STATE_LENGTH];
 
-
     protected Curl() {
         numberOfRounds = NUMBER_OF_ROUNDS;
         state = new byte[STATE_LENGTH];
