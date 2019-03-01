@@ -2,7 +2,7 @@
 
 This repository implements a batched binary encoded ternary Curl, using Hans Moog's Go implementation as a reference.
 
-The batch hasher collects up to a timeout of 50 milliseconds trits input to hash. All the inputs must be of the same length.
+The batched BCTCurl collects up to a timeout of 50 milliseconds trits inputs to hash. All the inputs must be of the same length.
 
 On an i7-8850u CPU, it is able to throughput ~15k txs hashes/s (**per core**) given 8019 trits of transaction input 
 data per request. Running on 4 cores, this yields over **~50k transaction hashes per second**.
