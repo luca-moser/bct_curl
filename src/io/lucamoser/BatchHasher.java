@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 public class BatchHasher {
 
+    private final static int MAX_BATCH_SIZE = 64;
+
     private ArrayBlockingQueue<HashReq> reqQueue;
     private int hashLength;
     private int numberOfRounds;
@@ -14,7 +16,7 @@ public class BatchHasher {
     public BatchHasher(int hashLength, int numberOfRounds) {
         this.hashLength = hashLength;
         this.numberOfRounds = numberOfRounds;
-        this.reqQueue = new ArrayBlockingQueue<>(100);
+        this.reqQueue = new ArrayBlockingQueue<>(MAX_BATCH_SIZE * 2);
     }
 
     public void hash(HashReq req) throws InterruptedException {
@@ -22,8 +24,8 @@ public class BatchHasher {
     }
 
     public void runDispatcher() throws InterruptedException {
+        List<HashReq> reqs = new ArrayList<>();
         for (; ; ) {
-            List<HashReq> reqs = new ArrayList<>();
 
             // take first request before starting any processing
             HashReq firstReq = reqQueue.take();
@@ -34,12 +36,13 @@ public class BatchHasher {
                 if (newReq == null) {
                     break;
                 }
-                if (reqs.size() == 64) {
+                if (reqs.size() == MAX_BATCH_SIZE) {
                     break;
                 }
                 reqs.add(newReq);
             }
             process(reqs);
+            reqs.clear();
         }
     }
 

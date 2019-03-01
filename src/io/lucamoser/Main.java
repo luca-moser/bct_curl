@@ -2,13 +2,16 @@ package io.lucamoser;
 
 import jota.utils.Converter;
 
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
+
+    private final static int HASHERS_COUNT = 4;
+    private final static int HASH_LENGTH_TRITS = 243;
+    private final static int NUMBER_OF_ROUNDS = 81;
 
     public static void main(String[] args) throws InterruptedException {
         HashReq req = new HashReq();
@@ -24,18 +27,18 @@ public class Main {
         };
         req.input = txTrits;
 
-        ArrayList<BatchHasher> hashers = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            hashers.add(new BatchHasher(243, 81));
+        BatchHasher[] hashers = new BatchHasher[HASHERS_COUNT];
+        for (int i = 0; i < HASHERS_COUNT; i++) {
+            hashers[i] = new BatchHasher(HASH_LENGTH_TRITS, NUMBER_OF_ROUNDS);
         }
 
-        ExecutorService feedThreadsPool = Executors.newFixedThreadPool(4);
-        for (int i = 0; i < 4; i++) {
+        ExecutorService feedThreadsPool = Executors.newFixedThreadPool(HASHERS_COUNT);
+        for (int i = 0; i < HASHERS_COUNT; i++) {
             final int id = i;
             feedThreadsPool.submit(() -> {
                 try {
                     for (; ; ) {
-                        hashers.get(id).hash(req);
+                        hashers[id].hash(req);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -43,12 +46,12 @@ public class Main {
             });
         }
 
-        ExecutorService hashersPool = Executors.newFixedThreadPool(4);
-        for (int i = 0; i < 4; i++) {
+        ExecutorService hashersPool = Executors.newFixedThreadPool(HASHERS_COUNT);
+        for (int i = 0; i < HASHERS_COUNT; i++) {
             final int id = i;
             hashersPool.submit(() -> {
                 try {
-                    hashers.get(id).runDispatcher();
+                    hashers[id].runDispatcher();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -62,5 +65,13 @@ public class Main {
             System.out.printf("hashed %d (%d/s)\r", hashed, hashed - last);
             last = hashed;
         }
+    }
+
+    public static void printHash(byte[] trits) {
+        int[] intArray = new int[trits.length];
+        for (int i = 0; i < trits.length; i++) {
+            intArray[i] = (int) trits[i];
+        }
+        System.out.println(Converter.trytes(intArray));
     }
 }

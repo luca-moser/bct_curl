@@ -44,7 +44,7 @@ public class BCTCurl {
 
                 long delta = beta ^ scratchPadLow[scratchPadIndex];
                 state.low[stateIndex] = ~(delta & alpha);
-                state.high[stateIndex] = delta | (alpha ^ scratchPadHigh[scratchPadIndex]);
+                state.high[stateIndex] = (alpha ^ scratchPadHigh[scratchPadIndex]) | delta;
             }
         }
     }
